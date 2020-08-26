@@ -233,6 +233,7 @@ def delete_post(post_id):
         abort(403)
     db.session.delete(post)
     db.session.commit()
+    flash('Your post has been deleted!', 'success')
     return redirect(url_for('userhome'))
 
 
@@ -248,8 +249,8 @@ def delete_account():
             db.session.delete(post)
         db.session.delete(user)
         db.session.commit()
+        flash('Your account has been deleted', 'success')
         return redirect(url_for('login'))
-
     return render_template("deleteacc.html", form=form, title="Delete My Account")
 
 
@@ -265,8 +266,7 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for("userhome"))
-        return redirect(url_for('signup'))
-                
+        return redirect(url_for('signup'))    
     return render_template("login.html", form=form, title="Login")
 
 
@@ -296,7 +296,7 @@ def signup():
         mail.send(msg)
 
 
-        
+        flash("Your account has been created", 'success')
         return redirect(url_for('login'))
     return render_template("signup.html", form=form, title="Sign Up")
 
@@ -323,7 +323,7 @@ def forgot_password():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         send_reset_email(user)
-        return "A email has been sent to the email address you entered. If you do not get an email, there may be an error in your account."
+        flash("An email has been sent to reset your password.", 'success')
 
 
     return render_template("forgotpw.html", form=form, title="Forgot Password")
