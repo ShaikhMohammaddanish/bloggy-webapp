@@ -78,7 +78,6 @@ class UpdatePostForm(FlaskForm):
     submit = SubmitField("Update Post")
 
 class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)])
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=50)])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
 
@@ -261,7 +260,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user:
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
