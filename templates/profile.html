@@ -1,0 +1,47 @@
+{% extends "userbase.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+<title>My Profile</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+{% endblock %}
+{% block content %}
+
+<div class="header">
+    <h1>My Account</h1>
+    <h6>_______________________________</h6>
+    <p>My username: {{ name }}</p>
+    <p>My email address: {{ email }}</p>
+    <p>Change Password? <a href="changepassword">Click here.</a></p>
+    
+</div>
+
+
+<footer class="delete-acc">
+  <a href="{{ url_for('delete_account')}}">Delete my Bloggy account.</a>
+</footer>
+
+<style>
+    .header {
+        color: #000000;
+
+        margin-top: 100px;
+
+    }
+
+    a {
+        text-decoration: none;
+      }
+    p{
+      margin-top: 20px;
+    }
+
+    footer{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+
+    }
+
+</style>
+{% endblock %}

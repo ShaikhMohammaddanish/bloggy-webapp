@@ -1,0 +1,47 @@
+{% extends "userbase.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}Home{% endblock %}
+{% block head %}
+<title>My Profile</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+{% endblock %}
+{% block content %}
+
+<div class="header">
+    <h1>Delete account</h1>
+    <h6>________________________________________</h6>
+</div>
+
+
+<form method="POST" action="/delete_account">
+    {{ form.hidden_tag() }}
+    {{ wtf.form_field(form.email)}}
+    {{ wtf.form_field(form.username)}}
+    {{ wtf.form_field(form.password)}}
+    {{ wtf.form_field(form.submit)}}
+</form>
+
+
+
+<style>
+    .header {
+        color: #000000;
+
+        margin-top: 100px;
+
+    }
+
+    a {
+        text-decoration: none;
+      }
+    p{
+      margin-top: 20px;
+    }
+
+    form{
+        margin-top: 20px;
+    }
+
+</style>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{% endblock %}
+{% block content %}
+<meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<div class="header">
+    
+
+    {% if current_user.is_authenticated %}
+        <h1>Hey {{current_user.username}}! Welcome to the home page!</h1>
+        <p><a href="userhome">Return to dashboard</a></p>
+    {% else %}
+        <h1>Hello, welcome to Bloggy!</h1>
+        <p>Sign in to start using Bloggy.</p>
+    {% endif %}
+   
+</div>
+<style>
+    .header{
+        margin-top: 100px;
+
+
+    }
+</style>
+{% endblock %}

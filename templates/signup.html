@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}{% endblock %}
+{% block content %}
+
+
+<form method="POST" action="/signup">
+  <h2>Sign Up Here</h2>
+  <p>____________________________</p>
+  {{ form.hidden_tag() }}
+  {{ wtf.form_field(form.email)}}
+  {{ wtf.form_field(form.username)}}
+  {{ wtf.form_field(form.password)}}
+  <button class="btn" type="submit">Submit</button>
+</form> 
+<p>Already have an account? <a href="login">Login</a></p>
+
+<style>
+  form{
+    margin-top: 100px;
+  }
+</style>
+{% endblock %}

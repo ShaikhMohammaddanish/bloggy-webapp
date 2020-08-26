@@ -1,0 +1,23 @@
+{% extends "userbase.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block title %}{% endblock %}
+{% block content %}
+
+
+<form method="POST" action="/post">
+  <h2>New Post</h2>
+  <p>____________________</p>
+  {{ form.hidden_tag() }}
+
+  {{ wtf.form_field(form.post_title)}}
+  {{ wtf.form_field(form.post_content)}}
+  {{ wtf.form_field(form.submit)}}
+</form> 
+
+
+<style>
+  form{
+    margin-top: 100px;
+  }
+</style>
+{% endblock %}

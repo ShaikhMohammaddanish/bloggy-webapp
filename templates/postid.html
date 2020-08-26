@@ -1,0 +1,45 @@
+{% extends "userbase.html" %}
+{% block title %}Home{% endblock %}
+{% block head %}
+<title>My Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+{% endblock %}
+{% block content %}
+
+<div class="specific-post">
+  <article class="media content-section">
+
+    <div class="media-body">
+      <div class="article-metadata">
+      </div>
+      <small>Posted by {{ post.author.username}} on {{post.post_date.strftime('%m/%d/%Y') }}</small>
+      
+      <h2>{{ post.post_title }}</h2>
+      <p class="article-content">{{ post.post_content }}</p>
+      <p>_______________________________________________________</p>
+      {% if post.author == current_user %}
+        <div>
+          <a class="btn btn-primary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id)}}">Update Post</a>
+        </div>
+        <div>
+          <a class="btn btn-danger btn-sm m-1" href="{{ url_for('delete_post', post_id=post.id)}}">Delete Post</a>
+        </div>
+      {% endif %}
+  </article>
+</div>
+
+
+  
+
+
+<style>
+
+
+    .specific-post{
+
+      margin-top: 100px;
+    }
+
+</style>
+{% endblock %}
