@@ -265,7 +265,7 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for("userhome"))
-        return "<h1>User does not exist or invalid username or password.</h1>"
+        return redirect(url_for('signup'))
                 
     return render_template("login.html", form=form, title="Login")
 
