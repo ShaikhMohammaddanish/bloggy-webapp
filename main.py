@@ -218,7 +218,7 @@ def update_post(post_id):
     elif request.method == 'GET':
         form.post_title.data = post.post_title
         form.post_content.data = post.post_content
-
+    flash("Your post has been updated!", "success")
     return render_template('update_post.html', title='Update Post', form=form, post=post_id)
         
 
