@@ -241,10 +241,10 @@ def delete_post(post_id):
 @login_required
 def delete_account():
     form = DeleteAccountForm()
-    post = Post.query.filter_by(author=current_user).all()
+    posts = Post.query.filter_by(author=current_user).all()
     user = User.query.filter_by(email=form.email.data).first()
     if form.validate_on_submit():
-        for i in post:
+        for post in posts:
             db.session.delete(post)
         db.session.delete(user)
         db.session.commit()
