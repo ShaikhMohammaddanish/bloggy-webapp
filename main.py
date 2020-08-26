@@ -245,7 +245,8 @@ def delete_account():
     post = Post.query.filter_by(author=current_user).all()
     user = User.query.filter_by(email=form.email.data).first()
     if form.validate_on_submit():
-        db.session.delete(post)
+        for i in post:
+            db.session.delete(post)
         db.session.delete(user)
         db.session.commit()
         return redirect(url_for('login'))
