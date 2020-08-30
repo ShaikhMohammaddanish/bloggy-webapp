@@ -1,4 +1,5 @@
 {% extends "userbase.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block title %}Home{% endblock %}
 {% block head %}
 <title>My Profile</title>
@@ -8,13 +9,34 @@
 {% block content %}
 
 <div class="header">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+      {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              <span>{{ message }}</span>
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
     <h1>My Account</h1>
     <h6>_______________________________</h6>
     <p>My username: {{ name }}</p>
     <p>My email address: {{ email }}</p>
     <p>Change Password? <a href="changepassword">Click here.</a></p>
+    <p>_______________________________</p>
+    {% if current_user.bio_content == None %}
+      <p>My Bio: No bio yet.</p>
+    {% else %}
+      <p>My Bio: {{current_user.bio_content}} </p>
+    {% endif %}
+    <a class="btn btn-primary" href="/profile/bio">Update Bio</a>
+
     
 </div>
+
 
 
 <footer class="delete-acc">
@@ -32,9 +54,7 @@
     a {
         text-decoration: none;
       }
-    p{
-      margin-top: 20px;
-    }
+
 
     footer{
     position: fixed;
@@ -42,6 +62,7 @@
     bottom: 0;
 
     }
+
 
 </style>
 {% endblock %}

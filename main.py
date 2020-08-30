@@ -42,6 +42,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
     posts = db.relationship('Post', backref='author', lazy=True)
+    bio_content = db.Column(db.String(1000))
 
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(app.config['SECRET_KEY'], expires_sec)
@@ -81,7 +82,11 @@ class LoginForm(FlaskForm):
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=50)])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
 
+class BioForm(FlaskForm):
+    # bio = TextAreaField("Bio", validators=[InputRequired(), Length(min=4, max=1000)])
+    bio = TextAreaField('Bio', [Length(min=0, max=1000)])
 
+    submit = SubmitField("Update Bio")
 
 class RegisterForm(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)])
@@ -152,6 +157,30 @@ def profile():
     return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile")
 
 
+# Create Bio
+@app.route("/profile/bio", methods=["GET", 'POST'])
+@login_required
+def bio():
+    form = BioForm()
+    if form.validate_on_submit():
+        current_user.bio_content = form.bio.data
+        db.session.commit()
+        flash("Your bio has been updated!", 'success')
+        return redirect(url_for('profile'))
+    elif request.method == 'GET':
+        form.bio.data = current_user.bio_content
+        
+    return render_template('bio.html', form=form, title="Update Bio")
+
+
+
+# If a user visits another user's profile
+@app.route("/user/<username>")
+@login_required
+def user(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template('user.html', title=user.username, user=user)
+
 
 
 
@@ -197,7 +226,6 @@ def create_post():
 def post(post_id):
     post = Post.query.get_or_404(post_id)
     return render_template('postid.html', title=post.post_title, post=post)
-
 
 
 
@@ -266,6 +294,7 @@ def login():
             if bcrypt.check_password_hash(user.password, form.password.data):
                 login_user(user)
                 return redirect(url_for("userhome"))
+        flash("This account does not exist. You need to sign up first.", 'warning')
         return redirect(url_for('signup'))    
     return render_template("login.html", form=form, title="Login")
 
@@ -296,7 +325,7 @@ def signup():
         mail.send(msg)
 
 
-        flash("Your account has been created", 'success')
+        flash(f"Your account has been created for {form.username.data}", 'success')
         return redirect(url_for('login'))
     return render_template("signup.html", form=form, title="Sign Up")
 
