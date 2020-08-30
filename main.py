@@ -177,9 +177,9 @@ def bio():
 # If a user visits another user's profile
 @app.route("/user/<username>")
 @login_required
-def user(username):
+def user(username): 
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', title=user.username, user=user)
+    return render_template('user.html', title=user.username, user=user, posts=user.posts)
 
 
 
@@ -374,6 +374,7 @@ def reset_password(token):
         flash('Your password has been updated! You are now able to log in', 'success')
         return redirect(url_for('login'))
     return render_template('resetpw.html', title='Reset Password', form=form)
+
 
 # Redirect after password changes
 @app.route("/passwordchangesuccess")
