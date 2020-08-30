@@ -11,8 +11,11 @@
 <div class="header">
     <h1>{{user.username}}</h1>
     <p>______________________________________</p>
-    <p>{{user.bio_content}}</p>
-
+    {% if current_user.bio_content == None %}
+        <p>No bio yet.</p>
+    {% else %}
+        <p>{{user.bio_content}}</p>
+    {% endif %}
 </div>
 
   
