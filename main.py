@@ -1,16 +1,22 @@
 from flask import Flask, render_template, session, request, url_for, redirect, flash, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed
 from flask_bootstrap import Bootstrap
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, FileField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 import os
+from flask_security import Security, SQLAlchemyUserDatastore
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from flask_bcrypt import Bcrypt
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+from PIL import Image
+import secrets
 
 app = Flask(__name__)
 
@@ -45,6 +51,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
+    profile_pic = db.Column(db.String(20), nullable=False, default='default.jpg')
     posts = db.relationship('Post', backref='author', lazy=True)
     bio_content = db.Column(db.String(1000))
 
@@ -70,6 +77,24 @@ class Post(db.Model, UserMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect(url_for('login'))
+
+
+class MyAdminView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+admin = Admin(app, index_view=MyAdminView())
+admin.add_view(MyModelView(User, db.session))
+admin.add_view(MyModelView(Post, db.session))
 
 class PostForm(FlaskForm):
     post_title = StringField("Title", validators=[InputRequired(), Length(min=4, max=40)])
@@ -82,6 +107,7 @@ class UpdatePostForm(FlaskForm):
     post_content = TextAreaField("Description", validators=[InputRequired(), Length(min=4, max=1000)])
     submit = SubmitField("Update Post")
 
+
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=50)])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
@@ -91,6 +117,11 @@ class BioForm(FlaskForm):
     bio = TextAreaField('Bio', [Length(min=0, max=1000)])
 
     submit = SubmitField("Update Bio")
+
+class ProfilePicForm(FlaskForm):
+    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    submit = SubmitField('Update Profile') 
+
 
 class RegisterForm(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
@@ -137,6 +168,18 @@ def page_not_found(e):
     return "<h1>403 You do not have permission to do that.</h1>", 403
 
 
+@app.route('/admin_login')
+def admin_login():
+    user = User.query.get(1)
+    login_user(user)
+    return 'logged in'
+
+@app.route('/admin_logout')
+def admin_logout():
+    logout_user()
+    return 'logged out'
+
+
 # Home Page
 @app.route("/home")
 @app.route("/")
@@ -158,7 +201,24 @@ def userhome():
 @app.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
-    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile")
+    image_file = url_for('static', filename='profile_pic/' + current_user.profile_pic)
+    return render_template("profile.html", image_file=image_file, name=current_user.username, email=current_user.email, profile_pic=current_user.profile_pic, title="My Profile")
+
+
+
+
+# Create The profile pic
+@app.route('/profile/picture', methods=['GET', 'POST'])
+@login_required
+def profile_picture():
+    form = ProfilePicForm()
+    if form.validate_on_submit():
+        current_user.profile_pic = form.picture.data
+        db.session.commit()
+        flash('Your profile picture has been updated!', 'success')
+        return redirect(url_for('profile'))
+    return render_template('picture.html', form=form, title="Update Profile Picture")            
+
 
 
 # Create Bio
@@ -183,7 +243,7 @@ def bio():
 @login_required
 def user(username): 
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', title=user.username, user=user, posts=user.posts)
+    return render_template('user.html', title=user.username, user=user, posts=user.posts, profile_picture=user.profile_pic)
 
 
 

@@ -23,15 +23,24 @@
 {% endwith %}
     <h1>My Account</h1>
     <h6>_______________________________</h6>
+
+      <p>My Profile Picture: <img src="{{ image_file }}" width='50' height='50'><a class='btn' href='/profile/picture'>Update Picture</a></p> 
+    
+    
+
     <p>My username: {{ name }}</p>
+
     <p>My email address: {{ email }}</p>
+
     <p>Change Password? <a href="changepassword">Click here.</a></p>
+
     <p>_______________________________</p>
     {% if current_user.bio_content == None %}
       <p>My Bio: No bio yet.</p>
     {% else %}
       <p>My Bio: {{current_user.bio_content}} </p>
     {% endif %}
+
     <a class="btn btn-primary" href="/profile/bio">Update Bio</a>
 
     

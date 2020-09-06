@@ -10,7 +10,11 @@
 
 <div class="header">
     <div class="border"><h1>{{user.username}}</h1>
-        <div class="bio"><p>{{user.bio_content}}</p></div>
+        {% if user.bio_content == None %}
+            <div class="bio"><p>No bio yet.</p></div>
+        {% else %}
+            <div class="bio"><p>{{user.bio_content}}</p></div>
+        {% endif %}
     </div>
 </div>
 
