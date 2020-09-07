@@ -24,28 +24,34 @@
     <h1>My Account</h1>
     <h6>_______________________________</h6>
 
-      <p>My Profile Picture: <img src="{{ image_file }}" width='50' height='50'><a class='btn' href='/profile/picture'>Update Picture</a></p> 
-    
-    
-
     <p>My username: {{ name }}</p>
 
     <p>My email address: {{ email }}</p>
 
     <p>Change Password? <a href="changepassword">Click here.</a></p>
-
     <p>_______________________________</p>
-    {% if current_user.bio_content == None %}
-      <p>My Bio: No bio yet.</p>
-    {% else %}
-      <p>My Bio: {{current_user.bio_content}} </p>
-    {% endif %}
+    <div class='border'>
+      {% if current_user.bio_content == None %}
+        <p>My Bio: No bio yet.  <a href="/profile/bio">Update Bio</a></p>
+      {% else %}
+        <p>My Bio: {{current_user.bio_content}}  <a href="/profile/bio">Update Bio</a></p>
+      {% endif %}
+    </div>
 
-    <a class="btn btn-primary" href="/profile/bio">Update Bio</a>
-
-    
 </div>
 
+<div class="profile-pic">
+
+  <div class='border'>
+    <p>My Profile Picture: <img src="{{ image_file }}" width='50' height='50'></p> 
+    <form method="POST" action="/profile">
+      {{ form.hidden_tag() }}
+      {{ wtf.form_field(form.picture)}}
+      {{ wtf.form_field(form.submit)}}
+      <p class="text-danger">Only accepts png and jpg file extensions.</p>
+    </form> 
+  </div>
+</div>
 
 
 <footer class="delete-acc">
@@ -68,9 +74,18 @@
     footer{
     left: 0;
     bottom: 0;
+    margin-top: 50px;
 
     }
 
+    .border{
+      border: 3px black solid;
+    }
+
+
+    .profile-pic {
+      margin-top: 20px;
+    }
 
 </style>
 {% endblock %}

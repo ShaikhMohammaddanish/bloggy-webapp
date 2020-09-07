@@ -1,9 +1,9 @@
 from flask import Flask, render_template, session, request, url_for, redirect, flash, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed
+from flask_wtf.file import FileAllowed, FileField
 from flask_bootstrap import Bootstrap
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, FileField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -113,13 +113,13 @@ class LoginForm(FlaskForm):
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
 
 class BioForm(FlaskForm):
-    # bio = TextAreaField("Bio", validators=[InputRequired(), Length(min=4, max=1000)])
+
     bio = TextAreaField('Bio', [Length(min=0, max=1000)])
 
     submit = SubmitField("Update Bio")
 
 class ProfilePicForm(FlaskForm):
-    picture = FileField('Update Profile Picture', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Update Picture', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Update Profile') 
 
 
@@ -196,28 +196,49 @@ def userhome():
     return render_template("userhome.html", posts=posts, title="My Dashboard")
 
 
+def save_picture(form_picture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_picture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pic', picture_fn)
+
+    output_size = (125, 125)
+    i = Image.open(form_picture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
+
 
 # User Account Information
 @app.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
-    image_file = url_for('static', filename='profile_pic/' + current_user.profile_pic)
-    return render_template("profile.html", image_file=image_file, name=current_user.username, email=current_user.email, profile_pic=current_user.profile_pic, title="My Profile")
-
-
-
-
-# Create The profile pic
-@app.route('/profile/picture', methods=['GET', 'POST'])
-@login_required
-def profile_picture():
     form = ProfilePicForm()
     if form.validate_on_submit():
-        current_user.profile_pic = form.picture.data
-        db.session.commit()
-        flash('Your profile picture has been updated!', 'success')
+        if form.picture.data:
+            picture_file = save_picture(form.picture.data)
+            current_user.profile_pic = picture_file
+        flash('Profile Picture has been updated', 'success')
         return redirect(url_for('profile'))
-    return render_template('picture.html', form=form, title="Update Profile Picture")            
+        db.session.commit()
+    image_file = url_for('static', filename='profile_pic/' + current_user.profile_pic)
+    return render_template("profile.html", image_file=image_file, name=current_user.username, email=current_user.email, profile_pic=current_user.profile_pic, title="My Profile", form=form)
+
+
+
+
+# # Create The profile pic
+# @app.route('/profile/picture', methods=['GET', 'POST'])
+# @login_required
+# def profile_picture():
+#     form = ProfilePicForm()
+#     if form.validate_on_submit():
+#         current_user.profile_pic = form.picture.data
+#         db.session.commit()
+#         flash('Your profile picture has been updated!', 'success')
+#         return redirect(url_for('profile'))
+#     return render_template('picture.html', form=form, title="Update Profile Picture")            
 
 
 
