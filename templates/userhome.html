@@ -27,7 +27,7 @@
           <div class="article-metadata">
           </div>
           <!-- <img src="{{ url_for('static', filename='profile_pic/' + post.author.profile_pic, width='50', height='50') }}">< -->
-          <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}">{{ post.author.username}}</a> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
+          <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}">{{ post.author.username}}</a> <img src='../static/profile_pics/default.jpg' width='15' height='15'> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
           <h2><a class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</a></h2>
           <p class="article-content">{{ post.post_content }}</p>
           <p>____________________________________________________</p>

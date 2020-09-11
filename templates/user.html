@@ -9,7 +9,7 @@
 
 
 <div class="header">
-    <div class="border"><h1>{{user.username}}</h1>
+    <div class="border"><h1>{{user.username}} <img src='../static/profile_pics/default.jpg' width='30' height='30'></h1>
         {% if user.bio_content == None %}
             <div class="bio"><p>No bio yet.</p></div>
         {% else %}
