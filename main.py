@@ -228,7 +228,7 @@ def profile():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=posts, image_file=profile_pic)
+    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=posts)
 
 
 # Create Bio
