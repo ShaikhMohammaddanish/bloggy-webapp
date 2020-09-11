@@ -28,6 +28,8 @@
       <h3 class='account-heading'>{{ name }}</h3>
       {% if posts == None %}
         <p>Number of posts by me: 0 posts</p>
+      {% elif posts == 1 %}
+        <p>Number of posts by me: {{posts}} post</p>
       {% else %}
         <p>Number of posts by me: {{posts}} posts</p>
       {% endif %}
