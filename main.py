@@ -217,7 +217,11 @@ def userhome():
 @app.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
-    posts = Post.query.filter_by(author=current_user).first()
+    posts = Post.query.filter_by(author=current_user).all()
+    post_total = 0
+    for i in posts:
+        post_total += 1
+
     form = UpdateAccount()
     if form.validate_on_submit():
         current_user.username = form.username.data
@@ -228,7 +232,7 @@ def profile():
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
-    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=posts)
+    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=post_total)
 
 
 # Create Bio
