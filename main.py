@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session, request, url_for, redirect, flash, abort, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileField
+from flask_wtf.file import FileField, FileAllowed
 from flask_bootstrap import Bootstrap
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
@@ -9,13 +9,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_mail import Mail, Message
 import os
-from flask_security import Security, SQLAlchemyUserDatastore
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from flask_bcrypt import Bcrypt
+from PIL import Image
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
-from PIL import Image
 import secrets
 
 app = Flask(__name__)
@@ -77,24 +76,6 @@ class Post(db.Model, UserMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
-class MyModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for('login'))
-
-
-class MyAdminView(AdminIndexView):
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-
-admin = Admin(app, index_view=MyAdminView())
-admin.add_view(MyModelView(User, db.session))
-admin.add_view(MyModelView(Post, db.session))
 
 class PostForm(FlaskForm):
     post_title = StringField("Title", validators=[InputRequired(), Length(min=4, max=40)])
@@ -107,36 +88,49 @@ class UpdatePostForm(FlaskForm):
     post_content = TextAreaField("Description", validators=[InputRequired(), Length(min=4, max=1000)])
     submit = SubmitField("Update Post")
 
-
 class LoginForm(FlaskForm):
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=50)])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
 
 class BioForm(FlaskForm):
-
+    # bio = TextAreaField("Bio", validators=[InputRequired(), Length(min=4, max=1000)])
     bio = TextAreaField('Bio', [Length(min=0, max=1000)])
 
     submit = SubmitField("Update Bio")
-
-class ProfilePicForm(FlaskForm):
-    picture = FileField('Update Picture', validators=[FileAllowed(['jpg', 'png'])])
-    submit = SubmitField('Update Profile') 
-
 
 class RegisterForm(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)], render_kw={"placeholder": "********"})
-    
+
     def validate_username(self, username):
         existing_user_username = User.query.filter_by(username=username.data).first()
         if existing_user_username:
             raise ValidationError("That username already exists. Please choose a different one.")
-    
+
     def validate_email(self, email):
         existing_user_email = User.query.filter_by(email=email.data).first()
         if existing_user_email:
             raise ValidationError("That email address belongs to different user. Please choose a different one.")
+
+
+class UpdateAccount(FlaskForm):
+    email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
+    username = StringField("Username", validators=[InputRequired(), Length(min=4, max=15)])
+    submit = SubmitField('Update Account')
+
+    
+    def validate_username(self, username):
+        if current_user.username != username.data:
+            user = User.query.filter_by(username=username.data).first()
+            if user:
+                raise ValidationError("That username already exists. Please choose a different one.")
+
+    def validate_email(self, email):
+        if current_user.email != email.data:
+            email = User.query.filter_by(email=email.data).first()
+            if email:
+                raise ValidationError("That email address belongs to different user. Please choose a different one.")
 
 
 class ForgotPasswordForm(FlaskForm):
@@ -157,6 +151,27 @@ class DeleteAccountForm(FlaskForm):
     password = PasswordField("Password", validators=[InputRequired(), Length(min=4, max=15)])
     submit = SubmitField("Delete My Account")
 
+
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect(url_for('login'))
+
+
+class MyAdminView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+admin = Admin(app, index_view=MyAdminView())
+admin.add_view(MyModelView(User, db.session))
+admin.add_view(MyModelView(Post, db.session))
+
+
 # Error handling
 @app.errorhandler(404)
 def page_not_found(e):
@@ -168,6 +183,7 @@ def page_not_found(e):
     return "<h1>403 You do not have permission to do that.</h1>", 403
 
 
+# Admin
 @app.route('/admin_login')
 def admin_login():
     user = User.query.get(1)
@@ -178,7 +194,6 @@ def admin_login():
 def admin_logout():
     logout_user()
     return 'logged out'
-
 
 # Home Page
 @app.route("/home")
@@ -196,50 +211,25 @@ def userhome():
     return render_template("userhome.html", posts=posts, title="My Dashboard")
 
 
-def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/profile_pic', picture_fn)
-
-    output_size = (125, 125)
-    i = Image.open(form_picture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-    return picture_fn
 
 
 # User Account Information
 @app.route("/profile", methods=['GET', 'POST'])
 @login_required
 def profile():
-    form = ProfilePicForm()
+    posts = Post.query.filter_by(author=current_user).first()
+    form = UpdateAccount()
     if form.validate_on_submit():
-        if form.picture.data:
-            picture_file = save_picture(form.picture.data)
-            current_user.profile_pic = picture_file
-        flash('Profile Picture has been updated', 'success')
-        return redirect(url_for('profile'))
+        current_user.username = form.username.data
+        current_user.email = form.email.data
         db.session.commit()
-    image_file = url_for('static', filename='profile_pic/' + current_user.profile_pic)
-    return render_template("profile.html", image_file=image_file, name=current_user.username, email=current_user.email, profile_pic=current_user.profile_pic, title="My Profile", form=form)
-
-
-
-
-# # Create The profile pic
-# @app.route('/profile/picture', methods=['GET', 'POST'])
-# @login_required
-# def profile_picture():
-#     form = ProfilePicForm()
-#     if form.validate_on_submit():
-#         current_user.profile_pic = form.picture.data
-#         db.session.commit()
-#         flash('Your profile picture has been updated!', 'success')
-#         return redirect(url_for('profile'))
-#     return render_template('picture.html', form=form, title="Update Profile Picture")            
-
+        flash('Your account has been updated!', 'success')
+        return redirect(url_for('profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.email.data = current_user.email
+    profile_pic = url_for('static', filename='profile_pics/' + current_user.profile_pic)
+    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=posts, image_file=profile_pic)
 
 
 # Create Bio
@@ -254,7 +244,7 @@ def bio():
         return redirect(url_for('profile'))
     elif request.method == 'GET':
         form.bio.data = current_user.bio_content
-        
+
     return render_template('bio.html', form=form, title="Update Bio")
 
 
@@ -262,9 +252,9 @@ def bio():
 # If a user visits another user's profile
 @app.route("/user/<username>")
 @login_required
-def user(username): 
+def user(username):
     user = User.query.filter_by(username=username).first_or_404()
-    return render_template('user.html', title=user.username, user=user, posts=user.posts, profile_picture=user.profile_pic)
+    return render_template('user.html', title=user.username, user=user, posts=user.posts)
 
 
 
@@ -333,7 +323,7 @@ def update_post(post_id):
         form.post_content.data = post.post_content
     flash("Your post has been updated!", "success")
     return render_template('update_post.html', title='Update Post', form=form, post=post_id)
-        
+
 
 
 # Delete the post
@@ -471,4 +461,4 @@ def change_password_redirect():
 
 
 if __name__ == "__main__":
-    app.run(debug=True) 
+    app.run(debug=True)

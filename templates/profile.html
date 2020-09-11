@@ -21,37 +21,41 @@
       {% endfor %}
   {% endif %}
 {% endwith %}
-    <h1>My Account</h1>
-    <h6>_______________________________</h6>
-
-    <p>My username: {{ name }}</p>
-
-    <p>My email address: {{ email }}</p>
-
-    <p>Change Password? <a href="changepassword">Click here.</a></p>
-    <p>_______________________________</p>
-    <div class='border'>
-      {% if current_user.bio_content == None %}
-        <p>My Bio: No bio yet.  <a href="/profile/bio">Update Bio</a></p>
+<div class="content-section">
+  <div class='media'>
+    <img class='rounded-circle account-img' src='{{ image_file }}' width="50" height="50">
+    <div class='media-body'>
+      <h3 class='account-heading'>{{ name }}</h3>
+      {% if posts == None %}
+        <p>Number of posts by me: 0 posts</p>
       {% else %}
-        <p>My Bio: {{current_user.bio_content}}  <a href="/profile/bio">Update Bio</a></p>
+        <p>Number of posts by me: {{posts}} posts</p>
       {% endif %}
     </div>
-
-</div>
-
-<div class="profile-pic">
-
-  <div class='border'>
-    <p>My Profile Picture: <img src="{{ image_file }}" width='50' height='50'></p> 
-    <form method="POST" action="/profile">
-      {{ form.hidden_tag() }}
-      {{ wtf.form_field(form.picture)}}
-      {{ wtf.form_field(form.submit)}}
-      <p class="text-danger">Only accepts png and jpg file extensions.</p>
-    </form> 
+  </div>
+  <div class='form'>
+  <form method='POST' action=''>
+    {{ form.hidden_tag ()}}
+    {{ wtf.form_field(form.email)}}
+    {{ wtf.form_field(form.username)}}
+    <p>Change Password? <a href="changepassword">Click here.</a></p>
+    {{ wtf.form_field(form.submit)}}
+  </form>
   </div>
 </div>
+
+
+    <p>_______________________________</p>
+    {% if current_user.bio_content == None %}
+      <p>My Bio: No bio yet.</p>
+    {% else %}
+      <p>My Bio: {{current_user.bio_content}} </p>
+    {% endif %}
+    <a class="btn btn-primary" href="/profile/bio">Update Bio</a>
+</div>
+
+
+
 
 
 <footer class="delete-acc">
@@ -74,18 +78,13 @@
     footer{
     left: 0;
     bottom: 0;
-    margin-top: 50px;
 
     }
-
-    .border{
-      border: 3px black solid;
-    }
-
-
-    .profile-pic {
+    
+    .form{
       margin-top: 20px;
     }
+
 
 </style>
 {% endblock %}
