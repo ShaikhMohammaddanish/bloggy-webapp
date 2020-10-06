@@ -20,6 +20,7 @@
     {{ wtf.form_field(form.username)}}
     {{ wtf.form_field(form.password)}}
     {{ wtf.form_field(form.submit)}}
+    <p>When you click the "Delete My Account" button, that is an undoable action and we are not responsible. Your posts, account, and any information related to you on this app will be gone! Do at your own risk! <a href="{{ url_for('userhome')}}">Cancel</a></p>
 </form>
 
 

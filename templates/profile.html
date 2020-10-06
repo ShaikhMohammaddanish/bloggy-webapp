@@ -8,57 +8,44 @@
 {% endblock %}
 {% block content %}
 
-<div class="header">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-      {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-              <span>{{ message }}</span>
-              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-              </button>
+  <div class="header">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">
+            {{ message }}
           </div>
-      {% endfor %}
-  {% endif %}
-{% endwith %}
-<div class="content-section">
-  <div class='media'>
-    <img class='rounded-circle account-img' src='../static/profile_pics/default.jpg' width="50" height="50">
-    <div class='media-body'>
-      <h3 class='account-heading'>{{ name }}</h3>
-      {% if posts == None %}
-        <p>Number of posts by me: 0 posts</p>
-      {% elif posts == 1 %}
-        <p>Number of posts by me: {{posts}} post</p>
-      {% else %}
-        <p>Number of posts by me: {{posts}} posts</p>
+        {% endfor %}
       {% endif %}
+    {% endwith %}
+  <div class="name-border">
+    <div class='border'>
+        <div class="user-content">
+            <h1>{{ current_user.username }}</h1>
+            {% if current_user.bio_content == None %}
+                <p><p>My Bio: No bio yet.</p></p>
+            {% else %}
+                <p>{{ current_user.bio_content }}</p>
+            {% endif %}
+        </div>
     </div>
   </div>
-  <div class='form'>
-  <form method='POST' action=''>
-    {{ form.hidden_tag ()}}
-    {{ wtf.form_field(form.email)}}
-    {{ wtf.form_field(form.username)}}
-    <p>Change Password? <a href="changepassword">Click here.</a></p>
-    {{ wtf.form_field(form.submit)}}
-  </form>
-  </div>
+<div class='edit-border'>
+  <div class='border'>
+	<div class='form'>
+	<form method='POST' action=''>
+		{{ form.hidden_tag ()}}
+		{{ wtf.form_field(form.email)}}
+		{{ wtf.form_field(form.username)}}
+		{{ wtf.form_field(form.bio)}}
+		{{ wtf.form_field(form.submit)}}
+		<p>Change Password? <a href="changepassword">Click here.</a></p>
+	</form>
+	</div>
+  
 </div>
-
-
-    <p>_______________________________</p>
-    {% if current_user.bio_content == None %}
-      <p>My Bio: No bio yet.</p>
-    {% else %}
-      <p>My Bio: {{current_user.bio_content}} </p>
-    {% endif %}
-    <a class="btn btn-primary" href="/profile/bio">Update Bio</a>
 </div>
-
-
-
-
+</div>
 
 <footer class="delete-acc">
   <a href="{{ url_for('delete_account')}}">Delete my Bloggy account.</a>
@@ -70,22 +57,36 @@
 
         margin-top: 100px;
 
-    }
-
-    a {
-        text-decoration: none;
-      }
-
-
-    footer{
-    left: 0;
-    bottom: 0;
-
-    }
+	}
+	
+	.name-border .user-content {
+    margin-left: 10px;
     
-    .form{
-      margin-top: 20px;
-    }
+	}
+
+  .border {
+    margin-top: 20px;
+    border-radius: 5px;
+  }
+
+  .edit-border {
+	background-color: #343a40;
+	color: white;
+	border-radius: 5px;
+  }
+
+  footer{
+		left: 0;
+		bottom: 0;
+
+  }
+    
+  .form{
+    margin-top: 20px;
+    width: 90%;
+    margin-left: 20px;
+    
+  }
 
 
 </style>

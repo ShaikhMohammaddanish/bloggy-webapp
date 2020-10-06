@@ -3,38 +3,39 @@
 {% block content %}
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-{% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                <span>{{ message }}</span>
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
+
 <div class="header">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
     <h1>Hello, {{ current_user.username }}!</h1>
-    <p>____________________________________________________</p>
 </div>
 
+
+
 {% for post in posts %}
-      <article class="media content-section">
+    <div class='border'>
+        <article class="content">
 
-        <div class="media-body">
-          <div class="article-metadata">
-          </div>
-          <!-- <img src="{{ url_for('static', filename='profile_pic/' + post.author.profile_pic, width='50', height='50') }}">< -->
-          <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}">{{ post.author.username}}</a> <img src='../static/profile_pics/default.jpg' width='15' height='15'> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
-          <h2><a class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</a></h2>
-          <p class="article-content">{{ post.post_content }}</p>
-          <p>____________________________________________________</p>
+            <div class="media-body">
+            <div class="article-metadata">
+                <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}" style="text-decoration: none;">{{ post.author.username}}</a> <img src='../static/profile_pics/default.jpg' width='15' height='15'> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
+            </div>
+            <h3><a class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</a></h3>
+            <p class="article-content">{{ post.post_content }}</p>
+            </div>
+        </article>
+    </div>
+{% endfor %}
 
-      </article>
 
-    {% endfor %}
+
     
 <style>
     .header{
@@ -43,19 +44,29 @@
 
     }
     .pagination-page-info {
-    padding: .6em;
-    padding-left: 0;
-    width: 40em;
-    margin: .5em;
-    margin-left: 0;
-    font-size: 12px;
+        padding: .6em;
+        padding-left: 0;
+        width: 40em;
+        margin: .5em;
+        margin-left: 0;
+        font-size: 12px;
     }
     .pagination-page-info b {
-    color: black;
-    background: #6aa6ed;
-    padding-left: 2px;
-    padding: .1em .25em;
-    font-size: 150%;
+        color: black;
+        background: #6aa6ed;
+        padding-left: 2px;
+        padding: .1em .25em;
+        font-size: 150%;
+    }
+
+    .border {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .content {
+        margin-left: 10px;
     }
 </style>
 {% endblock %}

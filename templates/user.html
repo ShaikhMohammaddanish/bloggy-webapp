@@ -1,5 +1,6 @@
 {% extends "userbase.html" %}
 {% block title %}Home{% endblock %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block head %}
 <title>My Dashboard</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -8,14 +9,18 @@
 {% block content %}
 
 
-<div class="header">
-    <div class="border"><h1>{{user.username}} <img src='../static/profile_pics/default.jpg' width='30' height='30'></h1>
-        {% if user.bio_content == None %}
-            <div class="bio"><p>No bio yet.</p></div>
-        {% else %}
-            <div class="bio"><p>{{user.bio_content}}</p></div>
-        {% endif %}
+<div class="name-border">
+    <div class='border'>
+        <div class="user-content">
+            <h1>{{ user.username }}</h1>
+            {% if user.bio_content == None %}
+                <p>No bio yet.</p>
+            {% else %}
+                <p>{{ user.bio_content }}</p>
+            {% endif %}
+        </div>
     </div>
+
 </div>
 
 
@@ -23,18 +28,18 @@
 <div class="posts">
 <h2>Posts by {{user.username}}</h2>
 {% for post in posts %}
- <article class="media content-section">
+    <div class='border'>
+        <article class="content">
 
-        <div class="media-body">
-          <div class="article-metadata">
-          </div>
-          <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}">{{ post.author.username}}</a> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
-          <h2><a class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</a></h2>
-          <p class="article-content">{{ post.post_content }}</p>
-          <p>____________________________________________________</p>
-
-      </article>
-
+            <div class="media-body">
+            <div class="article-metadata">
+                <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}" style="text-decoration: none;">{{ post.author.username}}</a> <img src='../static/profile_pics/default.jpg' width='15' height='15'> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
+            </div>
+            <h3><a class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</a></h3>
+            <p class="article-content">{{ post.post_content }}</p>
+            </div>
+        </article>
+    </div>
 {% endfor %}
 </div>
   
@@ -47,14 +52,27 @@
 
       margin-top: 100px;
     }
+    
     .posts{
-        margin-top: 50px;
+        margin-top: 30px;
     }
-    .header{
+
+    .name-border {
         margin-top: 100px;
     }
-    .header .border{
-        border: 3px black solid;
+
+    .name-border .user-content {
+        margin-left: 10px;
+    }
+
+    .border {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+
+    .border .content {
+        margin-left: 10px;
     }
 
 </style>

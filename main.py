@@ -12,10 +12,6 @@ import os
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from flask_bcrypt import Bcrypt
-from PIL import Image
-from flask_admin import Admin, AdminIndexView
-from flask_admin.contrib.sqla import ModelView
-import secrets
 
 app = Flask(__name__)
 
@@ -117,6 +113,7 @@ class RegisterForm(FlaskForm):
 class UpdateAccount(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=15)])
+    bio = TextAreaField('Bio', [Length(min=0, max=1000)])
     submit = SubmitField('Update Account')
 
     
@@ -152,24 +149,7 @@ class DeleteAccountForm(FlaskForm):
     submit = SubmitField("Delete My Account")
 
 
-class MyModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated
 
-
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for('login'))
-
-
-class MyAdminView(AdminIndexView):
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-
-admin = Admin(app, index_view=MyAdminView())
-admin.add_view(MyModelView(User, db.session))
-admin.add_view(MyModelView(Post, db.session))
 
 
 # Error handling
@@ -183,23 +163,25 @@ def page_not_found(e):
     return "<h1>403 You do not have permission to do that.</h1>", 403
 
 
-# Admin
-@app.route('/admin_login')
-def admin_login():
-    user = User.query.get(1)
-    login_user(user)
-    return 'logged in'
-
-@app.route('/admin_logout')
-def admin_logout():
-    logout_user()
-    return 'logged out'
 
 # Home Page
-@app.route("/home")
-@app.route("/")
+@app.route("/home", methods=['GET', 'POST'])
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/login", methods=['GET', 'POST'])
 def home():
-    return render_template("index.html", title="Welcome to Bloggy!")
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user:
+            if bcrypt.check_password_hash(user.password, form.password.data):
+                login_user(user)
+                return redirect(url_for("userhome"))
+    
+        flash("User does not exist, or invalid username or password.", 'warning')
+    if current_user.is_authenticated:
+        return redirect('userhome')
+    else:
+        return render_template('login.html', title='Login', form=form)
 
 
 
@@ -208,6 +190,14 @@ def home():
 @login_required
 def userhome():
     posts = Post.query.all()
+
+    post_total = 0
+    for post in posts:
+        post_total += 1
+
+    if post_total == 0:
+        flash('No posts yet. Come back later or be the first to make a post!', 'info')
+
     return render_template("userhome.html", posts=posts, title="My Dashboard")
 
 
@@ -226,29 +216,18 @@ def profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.email = form.email.data
+        current_user.bio_content = form.bio.data
         db.session.commit()
         flash('Your account has been updated!', 'success')
         return redirect(url_for('profile'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.email.data = current_user.email
+        form.bio.data = current_user.bio_content
     return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=post_total)
 
 
-# Create Bio
-@app.route("/profile/bio", methods=["GET", 'POST'])
-@login_required
-def bio():
-    form = BioForm()
-    if form.validate_on_submit():
-        current_user.bio_content = form.bio.data
-        db.session.commit()
-        flash("Your bio has been updated!", 'success')
-        return redirect(url_for('profile'))
-    elif request.method == 'GET':
-        form.bio.data = current_user.bio_content
 
-    return render_template('bio.html', form=form, title="Update Bio")
 
 
 
@@ -356,24 +335,8 @@ def delete_account():
         db.session.delete(user)
         db.session.commit()
         flash('Your account has been deleted', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     return render_template("deleteacc.html", form=form, title="Delete My Account")
-
-
-
-# Logging In
-@app.route('/login', methods=["GET", "POST"])
-def login():
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if bcrypt.check_password_hash(user.password, form.password.data):
-                login_user(user)
-                return redirect(url_for("userhome"))
-        flash("User does not exist, or invalid username or password.", 'warning')
-    return render_template("login.html", form=form, title="Login")
 
 
 
@@ -382,7 +345,8 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("login"))
+    flash("You have been logged out.", 'info')
+    return redirect(url_for("home"))
 
 
 
@@ -397,13 +361,11 @@ def signup():
         new_user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        msg = Message('Welcome to Bloggy!', sender = 'bloggywebsite@gmail.com', recipients = [form.email.data])
-        msg.body = "Hello, welcome to Bloggy!"
-        mail.send(msg)
+
 
 
         flash(f"Your account has been created for {form.username.data}", 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     return render_template("signup.html", form=form, title="Sign Up")
 
 
@@ -411,7 +373,7 @@ def signup():
 def send_reset_email(user):
     token = user.get_reset_token()
     msg = Message('Forgot your password?',
-                  sender='noreply@demo.com',
+                  sender='bloggywebsite@gmail.com',
                   recipients=[user.email])
     msg.body = f'''To reset your password, visit the following link:
     {url_for('reset_password', token=token, _external=True)}
@@ -450,7 +412,7 @@ def reset_password(token):
         user.password = hashed_password
         db.session.commit()
         flash('Your password has been updated! You are now able to log in', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('home'))
     return render_template('resetpw.html', title='Reset Password', form=form)
 
 
