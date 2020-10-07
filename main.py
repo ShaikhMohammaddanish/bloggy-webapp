@@ -12,6 +12,7 @@ import os
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from datetime import datetime
 from flask_bcrypt import Bcrypt
+import secrets
 
 app = Flask(__name__)
 
@@ -114,6 +115,7 @@ class UpdateAccount(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=15)])
     bio = TextAreaField('Bio', [Length(min=0, max=1000)])
+    profile_pic = FileField("Update Picture", validators=[FileAllowed(['jpg', 'png', 'heic'])])
     submit = SubmitField('Update Account')
 
     
@@ -195,11 +197,17 @@ def userhome():
     for post in posts:
         post_total += 1
 
-    if post_total == 0:
-        flash('No posts yet. Come back later or be the first to make a post!', 'info')
+    return render_template("userhome.html", posts=posts, title="My Dashboard", post_total=post_total)
 
-    return render_template("userhome.html", posts=posts, title="My Dashboard")
 
+def save_picture(form_profile_pic):
+    rand_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_profile_pic.filename)
+    picture_name = rand_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_name)
+    form_profile_pic.save(picture_path)
+
+    return picture_name
 
 
 
@@ -214,6 +222,9 @@ def profile():
 
     form = UpdateAccount()
     if form.validate_on_submit():
+        if form.profile_pic.data:
+            picture_file = save_picture(form.profile_pic.data)
+            current_user.profile_pic = picture_file
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.bio_content = form.bio.data
@@ -224,7 +235,8 @@ def profile():
         form.username.data = current_user.username
         form.email.data = current_user.email
         form.bio.data = current_user.bio_content
-    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=post_total)
+    profile_pic = url_for('static', filename='profile_pics/' + current_user.profile_pic)
+    return render_template("profile.html", name=current_user.username, email=current_user.email, title="My Profile", form=form, posts=post_total, profile_pic=profile_pic)
 
 
 
