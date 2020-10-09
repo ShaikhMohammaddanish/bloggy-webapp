@@ -13,11 +13,19 @@
     <div class="media-body">
       <div class="article-metadata">
       </div>
-      <small>Posted by {{ post.author.username}} on {{post.post_date.strftime('%m/%d/%Y') }}</small>
-      
-      <h2>{{ post.post_title }}</h2>
-      <p class="article-content">{{ post.post_content }}</p>
-      <p>_______________________________________________________</p>
+
+    <div class='border'>
+      <article class="content">
+        <div class="media-body">
+        <div class="article-metadata">
+            <small>Posted by <a href="{{ url_for('user', username=post.author.username)}}" style="text-decoration: none;">{{ post.author.username}}</a> <img class='rounded' src="{{ url_for('static', filename='profile_pics/' + post.author.profile_pic) }}" width="25" height="25"> on {{post.post_date.strftime('%m/%d/%Y') }}</small>
+        </div>
+        <h3><p class="article-title" href="{{ url_for('post', post_id=post.id) }}" style="text-decoration: none;">{{ post.post_title }}</p></h3>
+        <p class="article-content">{{ post.post_content }}</p>
+        </div>
+      </article>
+    </div>
+
       {% if post.author == current_user %}
         <div>
           <a class="btn btn-primary btn-sm m-1" href="{{ url_for('update_post', post_id=post.id)}}">Update Post</a>
@@ -26,6 +34,10 @@
           <a class="btn btn-danger btn-sm m-1" href="{{ url_for('delete_post', post_id=post.id)}}">Delete Post</a>
         </div>
       {% endif %}
+
+
+
+
   </article>
 </div>
 
@@ -40,6 +52,16 @@
 
       margin-top: 100px;
     }
+
+    .border {
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+
+    .content {
+        margin-left: 10px;
+    }
+
 
 </style>
 {% endblock %}
