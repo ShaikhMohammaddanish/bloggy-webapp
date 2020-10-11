@@ -115,7 +115,7 @@ class UpdateAccount(FlaskForm):
     email = StringField("Email", validators=[InputRequired(), Email(message="Invalid Email"), Length(max=50)], render_kw={"placeholder": "example@gmail.com"})
     username = StringField("Username", validators=[InputRequired(), Length(min=4, max=15)])
     bio = TextAreaField('Bio', [Length(min=0, max=1000)])
-    profile_pic = FileField("Update Picture", validators=[FileAllowed(['jpg', 'png', 'heic'])])
+    profile_pic = FileField("Update Picture", validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Update Account')
 
     
